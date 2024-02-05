@@ -129,10 +129,10 @@ extension Backport where Wrapped == Any {
                 let resolved = updatedUrl ?? url
                 #if os(macOS)
                 NSWorkspace.shared.open(resolved)
-                #elseif os(iOS) || os(tvOS)
-                UIApplication.shared.open(resolved)
-                #else
+                #elseif os(watchOS)
                 WKExtension.shared().openSystemURL(resolved)
+                #else
+                UIApplication.shared.open(resolved)
                 #endif
             }
 
@@ -146,12 +146,8 @@ private struct BackportOpenURLKey: EnvironmentKey {
         .init { url in
             #if os(macOS)
             return .systemAction
-            #elseif os(iOS) || os(tvOS)
-            if UIApplication.shared.canOpenURL(url) {
-                return .systemAction
-            } else {
-                return .discarded
-            }
+            #elseif !os(watchOS)
+            return UIApplication.shared.canOpenURL(url) ? .systemAction : .discarded
             #else
             return .systemAction
             #endif
